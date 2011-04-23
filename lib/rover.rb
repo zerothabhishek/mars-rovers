@@ -8,16 +8,18 @@ class Rover
     @direction = Direction.new(d)
   end
 
-  def final_position_and_direction
+  def position_and_direction
     "#{position.x} #{position.y} #{direction.points}"
   end
 
-  def explore(command_sequence)
-    command_sequence.split('').each{ |command| execute(command) }
+  def explore(instruction_sequence)
+    instruction_sequence.split('').each{ |instruction| execute(instruction) }
   end
   
-  def execute(command)
-    case command
+  private
+  
+  def execute(instruction)
+    case instruction
       when 'L'  :   @direction.turn_left 
       when 'R'  :   @direction.turn_right
       when 'M'  :   move

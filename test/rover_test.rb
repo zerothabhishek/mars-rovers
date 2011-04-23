@@ -1,39 +1,64 @@
-require 'init.rb'
-
+require 'test_helper'
 class RoverTest < Test::Unit::TestCase
   
   def setup
-    @pl = Plateau.new("5","6")
+    @pl = Plateau.new("5 6")
+    @r = Rover.new("2 3 S", @pl) 
   end
   
-  def test_initialize_should_set_correct_position_and_direction
-    r = Rover.new("2 3 N", @pl)
-    assert_equal [2,3,'N'] , [r.position.x, r.position.y, r.direction.points], "rover postion not set correct"
+  def test_initialize
+    assert_equal  [2,3,'S'], [@r.position.x, @r.position.y, @r.direction.points], 
+                  "intialize should set position and direction correct"
   end
   
-  def test_explore_should_change_direction_to_left_on_L_command
-    r = Rover.new("2 3 N", @pl)
-    r.explore('L')
-    assert_equal 'W', r.direction.points, "rover direction not changing correct on L command"
+  def test_position_and_direction
+    assert_equal "2 3 S", @r.position_and_direction,
+                  "position_and_direction should give a string of position.x position.y direcion.points"
   end
   
-  def test_explore_should_change_direction_to_right_on_R_command
-    r = Rover.new("2 2 S", @pl)
-    r.explore('R')
-    assert_equal 'W', r.direction.points, "rover direction not changing correct on L command"
+  def test_explore 
+    @r.stubs(:execute).returns(true)
+    @r.expects(:execute).times(3)
+    @r.explore("LRM")
   end
-  
-  def test_explore_should_change_position_on_M_command
-    r = Rover.new("2 2 S", @pl)
-    r.explore('M')
-    assert_equal 1, r.position.y, "rover direction not changing correct on L command"
-  end
-  
-  def test_explore_should_not_change_positions_on_M_command_when_movement_is_not_possible
-    r = Rover.new("0 2 E", @pl)
-    r.explore('M')
-    assert_equal [0, 2, 'E'], [r.position.x, r.position.y, r.direction.points], "rover moving when movement is not possible"
-  end
-
     
+  def test_execute_left
+    @r.direction.expects(:turn_left).once
+    @r.send(:execute, "L")
+  end  
+  
+  def test_execute_right
+    @r.direction.expects(:turn_right).once
+    @r.send(:execute, "R")
+  end
+  
+  def test_execute_move
+    Rover.any_instance.stubs(:movement_impossible?).returns(false)
+    @r.position.expects(:change_in).with(@r.direction).once
+    @r.send(:move)
+  end
+  
+  def test_execute_move_when_movement_is_impossible
+    Rover.any_instance.stubs(:movement_impossible?).returns(true)
+    @r.position.expects(:change_in).never
+    @r.send(:move)
+  end
+  
+  def test_movement_impossible?
+    Position.any_instance.stubs(:on_north_limit?).returns(true)
+    Direction.any_instance.stubs(:north?).returns(true)
+    assert @r.send(:movement_impossible?)
+  end
+  
+  def test_movement_impossible2?
+    Position.any_instance.stubs(:on_north_limit?).returns(false)
+    Position.any_instance.stubs(:on_east_limit?).returns(false)
+    Position.any_instance.stubs(:on_south_limit?).returns(false)
+    Position.any_instance.stubs(:on_west_limit?).returns(false)
+    Direction.any_instance.stubs(:north?).returns(false)
+    Direction.any_instance.stubs(:east?).returns(false)
+    Direction.any_instance.stubs(:south?).returns(false)
+    Direction.any_instance.stubs(:west?).returns(false)
+    assert !@r.send(:movement_impossible?)
+  end
 end
