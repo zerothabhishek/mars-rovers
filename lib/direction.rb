@@ -7,8 +7,6 @@ class Direction
     south: "S",
     west: "W"
   }
-
-  enum
   
   def initialize(d)
     @points = d
